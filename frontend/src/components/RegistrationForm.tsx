@@ -6,6 +6,7 @@ import { registrationAPI } from '@/lib/api';
 import { logout } from '@/lib/auth';
 import CouponInput from './CouponInput';
 import SimilarNamesList from './SimilarNamesList';
+import SimilarMobilesList from './SimilarMobilesList';
 import Toast from './Toast';
 
 interface RegistrationFormProps {
@@ -186,9 +187,10 @@ export default function RegistrationForm({ username, role }: RegistrationFormPro
               </div>
             </div>
 
-            {/* Similar Names Sidebar */}
-            <div className="lg:col-span-1">
+            {/* Similar Search Sidebar */}
+            <div className="lg:col-span-1 space-y-6">
               <SimilarNamesList searchQuery={name} />
+              <SimilarMobilesList searchQuery={mobileNo} />
             </div>
           </div>
         </div>

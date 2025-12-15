@@ -42,6 +42,13 @@ export const registrationAPI = {
     return response.data;
   },
 
+  searchSimilarMobiles: async (query: string) => {
+    const response = await api.get('/api/registrations/search-mobile', {
+      params: { query },
+    });
+    return response.data;
+  },
+
   createRegistration: async (data: { couponNo: string; name: string; mobileNo: string }) => {
     const response = await api.post('/api/registrations', data);
     return response.data;
@@ -51,6 +58,11 @@ export const registrationAPI = {
     const response = await api.get('/api/registrations', {
       params: { page, limit },
     });
+    return response.data;
+  },
+
+  updateRegistration: async (couponNo: string, data: { name: string; mobileNo: string }) => {
+    const response = await api.put(`/api/registrations/${couponNo}`, data);
     return response.data;
   },
 

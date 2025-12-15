@@ -58,6 +58,43 @@ export async function searchSimilarNames(req: AuthRequest, res: Response) {
   }
 }
 
+export async function searchSimilarMobiles(req: AuthRequest, res: Response) {
+  try {
+    const { query } = req.query;
+
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+      return res.json([]);
+    }
+
+    const searchQuery = query.trim();
+
+    // Check cache first
+    const cacheKey = `search:mobile:${searchQuery}`;
+    const cachedResult = cache.get(cacheKey);
+
+    if (cachedResult) {
+      return res.json(cachedResult);
+    }
+
+    // Search for similar mobile numbers using regex
+    const results = await Registration.find({
+      deletedAt: null,
+      mobileNo: { $regex: searchQuery, $options: 'i' }
+    })
+      .select('name mobileNo couponNo')
+      .limit(10)
+      .lean();
+
+    // Cache the results
+    cache.set(cacheKey, results);
+
+    return res.json(results);
+  } catch (error) {
+    console.error('Mobile search error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 export async function createRegistration(req: AuthRequest, res: Response) {
   try {
     const { couponNo, name, mobileNo } = req.body;
@@ -151,6 +188,62 @@ export async function getAllRegistrations(req: AuthRequest, res: Response) {
     });
   } catch (error) {
     console.error('Get registrations error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function updateRegistration(req: AuthRequest, res: Response) {
+  try {
+    const { couponNo } = req.params;
+    const { name, mobileNo } = req.body;
+
+    if (!couponNo) {
+      return res.status(400).json({ error: 'Coupon number required' });
+    }
+
+    // Validate input
+    if (!name || !mobileNo) {
+      return res.status(400).json({ error: 'Name and mobile number are required' });
+    }
+
+    if (!validateMobileFormat(mobileNo)) {
+      return res.status(400).json({ error: 'Invalid mobile number format (10 digits required)' });
+    }
+
+    if (name.trim().length === 0) {
+      return res.status(400).json({ error: 'Name cannot be empty' });
+    }
+
+    // Find the registration
+    const registration = await Registration.findOne({
+      couponNo,
+      deletedAt: null
+    });
+
+    if (!registration) {
+      return res.status(404).json({ error: 'Registration not found' });
+    }
+
+    // Update fields
+    registration.name = name.trim();
+    registration.mobileNo = mobileNo.trim();
+    await registration.save();
+
+    // Clear search cache
+    cache.flushAll();
+
+    return res.json({
+      success: true,
+      message: 'Registration updated successfully',
+      registration: {
+        couponNo: registration.couponNo,
+        name: registration.name,
+        mobileNo: registration.mobileNo,
+        createdAt: registration.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Update registration error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
