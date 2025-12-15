@@ -61,15 +61,13 @@ export async function login(req: Request, res: Response) {
       { expiresIn } as any
     );
 
-    // Set token in httpOnly cookie
-    // Use 'lax' for development to allow cross-origin access
-    // Use 'none' for production with HTTPS
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Set token in httpOnly cookie with relaxed settings for cross-origin
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      httpOnly: false, // Allow JavaScript access for debugging
+      secure: false,
+      path: '/',
       maxAge: 8 * 60 * 60 * 1000 // 8 hours
+      // sameSite not set - most permissive option
     });
 
     return res.json({
@@ -84,11 +82,8 @@ export async function login(req: Request, res: Response) {
 }
 
 export function logout(_req: Request, res: Response) {
-  const isProduction = process.env.NODE_ENV === 'production';
   res.clearCookie('token', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax'
+    path: '/'
   });
   return res.json({ success: true });
 }

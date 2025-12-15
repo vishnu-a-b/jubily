@@ -16,20 +16,24 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(helmet());
 
-// CORS Configuration - Allow all origins for development AND production
+// CORS Configuration - Allow all origins with credentials
 const corsOptions = {
   origin: function (_origin: any, callback: any) {
-    // Allow all origins - both development and production
-    // This enables access from any frontend, mobile app, or API tool
+    // Allow all origins including undefined (for same-origin requests)
     callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['Set-Cookie']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
 
 app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use(apiLimiter);
