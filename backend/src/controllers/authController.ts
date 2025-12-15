@@ -49,10 +49,16 @@ export async function login(req: Request, res: Response) {
     }
 
     // Generate JWT token
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(500).json({ error: 'JWT secret not configured' });
+    }
+
+    const expiresIn = process.env.JWT_EXPIRY || '8h';
     const token = jwt.sign(
       { username: user.username, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRY || '8h' }
+      jwtSecret,
+      { expiresIn } as any
     );
 
     // Set token in httpOnly cookie
@@ -74,16 +80,16 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export function logout(req: Request, res: Response) {
+export function logout(_req: Request, res: Response) {
   res.clearCookie('token');
   return res.json({ success: true });
 }
 
-export function checkAuth(req: Request, res: Response) {
+export function checkAuth(_req: Request, res: Response) {
   // This route is protected by authenticateToken middleware
   // If we reach here, user is authenticated
   return res.json({
     authenticated: true,
-    user: (req as any).user
+    user: (_req as any).user
   });
 }
