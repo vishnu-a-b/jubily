@@ -9,7 +9,11 @@ export interface AuthRequest extends Request {
 }
 
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
-  const token = req.cookies?.token;
+  // Check for token in Authorization header first, then fall back to cookies
+  const authHeader = req.headers.authorization;
+  let token = authHeader && authHeader.startsWith('Bearer ')
+    ? authHeader.substring(7)
+    : req.cookies?.token;
 
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });

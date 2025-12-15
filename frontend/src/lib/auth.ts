@@ -22,6 +22,12 @@ export async function checkAuthentication(): Promise<{ authenticated: boolean; u
 export async function login(username: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
   try {
     const data = await authAPI.login(username, password);
+
+    // Store token in localStorage
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
+    }
+
     return {
       success: true,
       user: {
@@ -39,8 +45,16 @@ export async function login(username: string, password: string): Promise<{ succe
 
 export async function logout(): Promise<void> {
   try {
+    // Remove token from localStorage
+    localStorage.removeItem('auth_token');
     await authAPI.logout();
   } catch (error) {
     console.error('Logout error:', error);
+    // Still remove token even if API call fails
+    localStorage.removeItem('auth_token');
   }
+}
+
+export function getToken(): string | null {
+  return localStorage.getItem('auth_token');
 }

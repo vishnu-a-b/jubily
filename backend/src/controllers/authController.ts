@@ -61,17 +61,10 @@ export async function login(req: Request, res: Response) {
       { expiresIn } as any
     );
 
-    // Set token in httpOnly cookie with relaxed settings for cross-origin
-    res.cookie('token', token, {
-      httpOnly: false, // Allow JavaScript access for debugging
-      secure: false,
-      path: '/',
-      maxAge: 8 * 60 * 60 * 1000 // 8 hours
-      // sameSite not set - most permissive option
-    });
-
+    // Return token in response body for cross-origin compatibility
     return res.json({
       success: true,
+      token: token,
       username: user.username,
       role: user.role
     });
@@ -82,9 +75,8 @@ export async function login(req: Request, res: Response) {
 }
 
 export function logout(_req: Request, res: Response) {
-  res.clearCookie('token', {
-    path: '/'
-  });
+  // Token-based auth - no cookies to clear
+  // Client will remove token from localStorage
   return res.json({ success: true });
 }
 
