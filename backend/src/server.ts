@@ -16,25 +16,12 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(helmet());
 
-// CORS Configuration - Allow all origins for development
+// CORS Configuration - Allow all origins for development AND production
 const corsOptions = {
-  origin: function (origin: any, callback: any) {
-    // Allow requests with no origin (like mobile apps, Postman, curl)
-    if (!origin) return callback(null, true);
-
-    // In production, you can restrict to specific origins
-    // For now, allow all origins for development and testing
-    if (process.env.NODE_ENV === 'production' && process.env.ALLOWED_ORIGINS) {
-      const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    } else {
-      // Development mode - allow all origins
-      callback(null, true);
-    }
+  origin: function (_origin: any, callback: any) {
+    // Allow all origins - both development and production
+    // This enables access from any frontend, mobile app, or API tool
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
